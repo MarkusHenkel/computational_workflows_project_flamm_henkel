@@ -5,6 +5,7 @@
 */
 include { FASTQC                 } from '../modules/nf-core/fastqc/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
+include { FASTP                } from '../modules/nf-core/fastp/main'
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -92,6 +93,55 @@ workflow NEWRNASEQ {
     )
     emit:multiqc_report = MULTIQC.out.report.map { _meta, report -> [report] }.toList() // channel: /path/to/multiqc_report.html
     versions       = ch_versions                 // channel: [ path(versions.yml) ]
+
+    // 
+    // MODULE: fastp
+    // 
+    FASTP(
+        
+    )
+
+    // 
+    // MODULE: STAR genome generate
+    // 
+
+
+    // 
+    // MODULE: STAR alignment
+    // 
+
+
+    // 
+    // MODULE: UMItools extract
+    // 
+
+    // 
+    // MODULE: UMItools dedup
+    // 
+
+    // 
+    // MODULE: UMItools extract
+    // 
+
+    // 
+    // MODULE: Picard duplicate marking without removal! 
+    // (Picard has no UMIs so biological duplicates are also removed if removal is not turnt off)
+    //
+
+
+    // 
+    // MODULE: Salmon index
+    //
+
+    // 
+    // MODULE: Salmon quantification
+    //
+
+    // 
+    // MODULE: tximport for transcript-level counts --> gene-level counts
+    //
+
+
 }
 
 /*
