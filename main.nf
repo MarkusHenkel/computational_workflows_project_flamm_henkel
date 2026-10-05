@@ -1,9 +1,11 @@
 #!/usr/bin/env nextflow
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    computational_workflows_project_flamm_henkel/rnaseq_basic
+    nf-core/newrnaseq
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Github : https://github.com/computational_workflows_project_flamm_henkel/rnaseq_basic
+    Github : https://github.com/nf-core/newrnaseq
+    Website: https://nf-co.re/newrnaseq
+    Slack  : https://nfcore.slack.com/channels/newrnaseq
 ----------------------------------------------------------------------------------------
 */
 
@@ -13,7 +15,22 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { RNASEQ_BASIC  } from './workflows/rnaseq_basic'
+include { NEWRNASEQ  } from './workflows/newrnaseq'
+include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_newrnaseq_pipeline'
+include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_newrnaseq_pipeline'
+include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_newrnaseq_pipeline'
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    GENOME PARAMETER VALUES
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+// TODO nf-core: Remove this line if you don't need a FASTA file
+//   This is an example of how to use getGenomeAttribute() to fetch parameters
+//   from igenomes.config using `--genome`
+params.fasta = getGenomeAttribute('fasta')
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     NAMED WORKFLOWS FOR PIPELINE
@@ -23,7 +40,7 @@ include { RNASEQ_BASIC  } from './workflows/rnaseq_basic'
 //
 // WORKFLOW: Run main analysis pipeline depending on type of input
 //
-workflow COMPUTATIONAL_WORKFLOWS_PROJECT_FLAMM_HENKEL_RNASEQ_BASIC {
+workflow NFCORE_NEWRNASEQ {
 
     take:
     samplesheet // channel: samplesheet read in from --input
@@ -33,10 +50,15 @@ workflow COMPUTATIONAL_WORKFLOWS_PROJECT_FLAMM_HENKEL_RNASEQ_BASIC {
     //
     // WORKFLOW: Run pipeline
     //
-    RNASEQ_BASIC (
+    NEWRNASEQ (
         samplesheet,
+        params.multiqc_config,
+        params.multiqc_logo,
+        params.multiqc_methods_description,
         params.outdir,
     )
+    emit:
+    multiqc_report = NEWRNASEQ.out.multiqc_report // channel: /path/to/multiqc_report.html
 }
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -47,12 +69,37 @@ workflow COMPUTATIONAL_WORKFLOWS_PROJECT_FLAMM_HENKEL_RNASEQ_BASIC {
 workflow {
 
     main:
+    //
+    // SUBWORKFLOW: Run initialisation tasks
+    //
+    PIPELINE_INITIALISATION (
+        params.version,
+        params.validate_params,
+        params.monochrome_logs,
+        args,
+        params.outdir,
+        params.input,
+        params.help,
+        params.help_full,
+        params.show_hidden
+    )
 
     //
     // WORKFLOW: Run main workflow
     //
-    COMPUTATIONAL_WORKFLOWS_PROJECT_FLAMM_HENKEL_RNASEQ_BASIC (
-        params.input
+    NFCORE_NEWRNASEQ (
+        PIPELINE_INITIALISATION.out.samplesheet
+    )
+    //
+    // SUBWORKFLOW: Run completion tasks
+    //
+    PIPELINE_COMPLETION (
+        params.email,
+        params.email_on_fail,
+        params.plaintext_email,
+        params.outdir,
+        params.monochrome_logs,
+        NFCORE_NEWRNASEQ.out.multiqc_report
     )
 }
 
