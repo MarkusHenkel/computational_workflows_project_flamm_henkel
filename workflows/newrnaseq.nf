@@ -13,6 +13,9 @@ include { STAR_ALIGN             } from '../modules/nf-core/star/align/main'
 // include { UMITOOLS_EXTRACT       } from '../modules/nf-core/umitools/extract/main'
 // include { SAMTOOLS_INDEX         } from '../modules/nf-core/samtools/index/main'
 // include { UMITOOLS_DEDUP         } from '../modules/nf-core/umitools/dedup/main'
+include { GFFREAD_CUSTOM         } from '../subworkflows/local/utils_nfcore_newrnaseq_pipeline/gffread_custom/main.nf'
+include { SALMON_INDEX           } from '../modules/nf-core/salmon/index/main'
+include { SALMON_QUANT           } from '../modules/nf-core/salmon/quant/main'
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -69,6 +72,7 @@ workflow NEWRNASEQ {
     // gunzip the fasta and GTF first if they are gzipped, STAR cant handle gzipped fastas and GTFs
     // 
 
+    // TODO replace hardcoded 'genome' with actually useful identifier for downstream tasks?
     ch_fasta_meta = ch_fasta.map { fasta -> [ [id: 'genome'], fasta ] }
     ch_gtf_meta   = ch_gtf.map   { gtf   -> [ [id: 'genome'], gtf ] }
     
@@ -140,13 +144,33 @@ workflow NEWRNASEQ {
     // // )
 
     // 
+    // PROCESS: GFFREAD 
+    // to create transcriptome fasta from gtf and genome fasta ourselves (no download, etc. of transcriptome necessary)
+    // 
+
+    GFFREAD_CUSTOM(
+        GUNZIP_GTF.out.gunzip, // [meta, unzipped gtf] tuple
+        ch_fasta,// genome fasta
+    )
+    ch_gffread_fasta = GFFREAD_CUSTOM.out.transcriptome_fasta
+
+    // DEBUG 
+    ch_gffread_fasta.dump(tag: "gffread_transcriptome_fasta")
+
+    // 
     // MODULE: Salmon index
     //
-
+    // SALMON_INDEX(
+    //     // [meta, transcript_fasta, genome_fasta] tuple: genome_fasta optional 
+    // )
 
     // 
     // MODULE: Salmon quantification
     //
+    // SALMON_QUANT(
+    //     ,// [meta,reads] tuple: fastq files or single bam TODO reads mode or alignment mode
+    //     ,// [meta, index, gtf, transcript_fasta]: no transcript_fasta in reads mode 
+    // )
 
     // 
     // MODULE: tximport for transcript-level counts --> gene-level counts
