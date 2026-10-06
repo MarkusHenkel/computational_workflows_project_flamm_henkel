@@ -44,6 +44,8 @@ workflow NFCORE_NEWRNASEQ {
 
     take:
     samplesheet // channel: samplesheet read in from --input
+    fasta // channel: path(genome.fasta) read in from --fasta
+    gtf // channel: path(genome.gtf) read in from --gtf
 
     main:
 
@@ -52,6 +54,8 @@ workflow NFCORE_NEWRNASEQ {
     //
     NEWRNASEQ (
         samplesheet,
+        fasta,
+        gtf,
         params.multiqc_config,
         params.multiqc_logo,
         params.multiqc_methods_description,
@@ -79,6 +83,8 @@ workflow {
         args,
         params.outdir,
         params.input,
+        params.fasta,
+        params.gtf,
         params.help,
         params.help_full,
         params.show_hidden
@@ -88,7 +94,10 @@ workflow {
     // WORKFLOW: Run main workflow
     //
     NFCORE_NEWRNASEQ (
-        PIPELINE_INITIALISATION.out.samplesheet
+        PIPELINE_INITIALISATION.out.samplesheet,
+        PIPELINE_INITIALISATION.out.fasta,
+        PIPELINE_INITIALISATION.out.gtf,
+
     )
     //
     // SUBWORKFLOW: Run completion tasks

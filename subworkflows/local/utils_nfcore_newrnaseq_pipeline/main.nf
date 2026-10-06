@@ -32,6 +32,8 @@ workflow PIPELINE_INITIALISATION {
     nextflow_cli_args //   array: List of positional nextflow CLI args
     outdir            //  string: The output directory where the results will be saved
     input             //  string: Path to input samplesheet
+    fasta             //  string: Path to input reference genome in fasta format
+    gtf               //  string: Path to input GTF file of the input genome
     help              // boolean: Display help message and exit
     help_full         // boolean: Show the full help message
     show_hidden       // boolean: Show hidden parameters in the help message
@@ -128,8 +130,17 @@ workflow PIPELINE_INITIALISATION {
         }
         .set { ch_samplesheet }
 
+    
+    // pass the input gtf file (as a path) through to the root main.nf
+    ch_gtf = channel.of(gtf)
+
+    // pass the input fasta file (as a path) through to the root main.nf
+    ch_fasta = channel.of(fasta)
+
     emit:
     samplesheet = ch_samplesheet
+    fasta = ch_fasta
+    gtf = ch_gtf
     versions    = ch_versions
 }
 

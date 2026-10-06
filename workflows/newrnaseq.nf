@@ -7,6 +7,12 @@ include { FASTQC as FASTQC_1     } from '../modules/nf-core/fastqc/main'
 include { FASTQC as FASTQC_2     } from '../modules/nf-core/fastqc/main' 
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { FASTP                  } from '../modules/nf-core/fastp/main'
+include { GUNZIP as GUNZIP_GTF   } from '../modules/nf-core/gunzip/main'
+include { STAR_GENOMEGENERATE    } from '../modules/nf-core/star/genomegenerate/main'
+include { STAR_ALIGN             } from '../modules/nf-core/star/align/main'
+// include { UMITOOLS_EXTRACT       } from '../modules/nf-core/umitools/extract/main'
+// include { SAMTOOLS_INDEX         } from '../modules/nf-core/samtools/index/main'
+// include { UMITOOLS_DEDUP         } from '../modules/nf-core/umitools/dedup/main'
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -22,6 +28,8 @@ workflow NEWRNASEQ {
 
     take:
     ch_samplesheet // channel: samplesheet read in from --input
+    ch_fasta // channel: path(genome.fasta)
+    ch_gtf // channel: path(genome.gtf)
     multiqc_config
     multiqc_logo
     multiqc_methods_description
@@ -42,11 +50,12 @@ workflow NEWRNASEQ {
     // MODULE: FASTP
     //    
     FASTP(
-        ch_samplesheet.map { meta, reads -> [meta, reads, []] },
-        false,
-        false,
-        false
+        ch_samplesheet.map { meta, reads -> [meta, reads, []] }, // meta-map: list of input FastQ files (len: 1=single end, 2=paired end), adapter fasta file
+        false, // discard_trimmed_pass
+        false, // save_trimmed_fail
+        false // save_merged
     )
+    // add Fastp output in JSON format to the MultiQC channel
     ch_multiqc_files = ch_multiqc_files.mix(FASTP.out.json.map{ _meta, file -> file })
 
     //
@@ -54,6 +63,99 @@ workflow NEWRNASEQ {
     //
     FASTQC_2(FASTP.out.reads)
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC_2.out.zip.map{ _meta, file -> file })
+
+    // 
+    // MODULE: GUNZIP_GTF
+    // gunzip the fasta and GTF first if they are gzipped, STAR cant handle gzipped fastas and GTFs
+    // 
+
+    ch_fasta_meta = ch_fasta.map { fasta -> [ [id: 'genome'], fasta ] }
+    ch_gtf_meta   = ch_gtf.map   { gtf   -> [ [id: 'genome'], gtf ] }
+    
+    // TODO add logic to only unzip if the fasta and gtf are zipped
+    GUNZIP_GTF(ch_gtf_meta)
+
+    // 
+    // MODULE: STAR_GENOMEGENERATE
+    // 
+
+    // DEBUG
+    ch_samplesheet.dump(tag: "samplesheet")
+    ch_fasta.dump(tag: "fasta")
+    ch_gtf.dump(tag: "gtf")
+
+    STAR_GENOMEGENERATE(
+        ch_fasta_meta, // meta and fasta of reference genome
+        GUNZIP_GTF.out.gunzip, // meta and gtf of reference genome
+    )
+    // get the [meta,index] tuple 
+    ch_star_index = STAR_GENOMEGENERATE.out.index
+    ch_star_index.dump(tag: "star_index")
+
+
+    // 
+    // MODULE: STAR alignment
+    // 
+    STAR_ALIGN(
+        ch_samplesheet, // [meta-map, reads] tuple: list of input FastQ files
+        ch_star_index, // STAR genome index (STAR_GENOMEGENERATE output)
+        GUNZIP_GTF.out.gunzip, // [meta-map, gtf] tuple of reference genome 
+        false, // ignore gtf file
+    )
+    ch_star_align_bam = STAR_ALIGN.out.bam
+    ch_star_align_bam_sorted = STAR_ALIGN.out.bam_sorted
+    ch_star_align_bam_sorted_aligned = STAR_ALIGN.out.bam_sorted_aligned
+    ch_star_align_bam_transcript = STAR_ALIGN.out.bam_transcript
+
+
+    // TODO add scRNAseq support => add flag for UMI extraction and let user set the barcode pattern (bc_pattern param in UMItools extract)
+    // // 
+    // // MODULE: UMItools extract
+    // // 
+    // UMITOOLS_EXTRACT(
+    //     ch_samplesheet // samplesheet
+    // )
+
+    // // 
+    // // MODULE: SAMtools index
+    // //
+    // SAMTOOLS_INDEX(
+    //     ch_star_align_bam
+    // )
+    // ch_samtools_bai = SAMTOOLS_INDEX.out.index
+
+    // // DEBUG
+    // ch_star_align_bam.dump(tag: "bam")
+    // ch_samtools_bai.dump(tag: "bai")
+
+    // // TODO join bam and bam index channels into one tuple channel for the UMItools dedup step
+    // // ch_bam_bai = 
+
+    // // 
+    // // MODULE: UMItools dedup
+    // // 
+    // // UMITOOLS_DEDUP(
+    // //     , // [meta, bam, bai] tuple: bam file and bam index file
+    // //     true,// get output stats
+    // // )
+
+    // 
+    // MODULE: Salmon index
+    //
+
+
+    // 
+    // MODULE: Salmon quantification
+    //
+
+    // 
+    // MODULE: tximport for transcript-level counts --> gene-level counts
+    //
+
+    // 
+    // MODULE: Picard duplicate marking without removal! 
+    // (Picard has no UMIs so biological duplicates are also removed if removal is not turnt off)
+    //
 
     //
     // Collate and save software versions
@@ -114,45 +216,8 @@ workflow NEWRNASEQ {
     versions       = ch_versions                 // channel: [ path(versions.yml) ]
 
 
-    // 
-    // MODULE: STAR genome generate
-    // 
 
 
-    // 
-    // MODULE: STAR alignment
-    // 
-
-
-    // 
-    // MODULE: UMItools extract
-    // 
-
-    // 
-    // MODULE: UMItools dedup
-    // 
-
-    // 
-    // MODULE: UMItools extract
-    // 
-
-    // 
-    // MODULE: Picard duplicate marking without removal! 
-    // (Picard has no UMIs so biological duplicates are also removed if removal is not turnt off)
-    //
-
-
-    // 
-    // MODULE: Salmon index
-    //
-
-    // 
-    // MODULE: Salmon quantification
-    //
-
-    // 
-    // MODULE: tximport for transcript-level counts --> gene-level counts
-    //
 
 
 }
