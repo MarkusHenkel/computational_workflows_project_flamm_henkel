@@ -15,7 +15,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { NEWRNASEQ  } from './workflows/newrnaseq'
+include { NEWRNASEQ               } from './workflows/newrnaseq'
 include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_newrnaseq_pipeline'
 include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_newrnaseq_pipeline'
 include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_newrnaseq_pipeline'

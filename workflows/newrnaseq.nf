@@ -3,7 +3,9 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { FASTQC                 } from '../modules/nf-core/fastqc/main'
+include { FASTP                  } from '../modules/nf-core/fastp/main'
+include { FASTQC as FASTQC_1     } from '../modules/nf-core/fastqc/main' 
+include { FASTQC as FASTQC_2     } from '../modules/nf-core/fastqc/main' 
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -29,11 +31,29 @@ workflow NEWRNASEQ {
 
     def ch_versions = channel.empty()
     def ch_multiqc_files = channel.empty()
+    
     //
-    // MODULE: Run FastQC
+    // MODULE: FASTQC
     //
-    FASTQC(ch_samplesheet)
-    ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.map{ _meta, file -> file })
+    FASTQC_1(ch_samplesheet)
+    ch_multiqc_files = ch_multiqc_files.mix(FASTQC_1.out.zip.map{ _meta, file -> file })
+
+    //
+    // MODULE: FASTP
+    //    
+    FASTP(
+        ch_samplesheet.map { meta, reads -> [meta, reads, []] },
+        false,
+        false,
+        false
+    )
+    ch_multiqc_files = ch_multiqc_files.mix(FASTP.out.json.map{ _meta, file -> file })
+
+    //
+    // MODULE: FASTQC
+    //
+    FASTQC_2(FASTP.out.reads)
+    ch_multiqc_files = ch_multiqc_files.mix(FASTQC_2.out.zip.map{ _meta, file -> file })
 
     //
     // Collate and save software versions
