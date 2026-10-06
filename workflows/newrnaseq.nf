@@ -3,11 +3,10 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { FASTP                  } from '../modules/nf-core/fastp/main'
 include { FASTQC as FASTQC_1     } from '../modules/nf-core/fastqc/main' 
 include { FASTQC as FASTQC_2     } from '../modules/nf-core/fastqc/main' 
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
-include { FASTP                } from '../modules/nf-core/fastp/main'
+include { FASTP                  } from '../modules/nf-core/fastp/main'
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -114,12 +113,6 @@ workflow NEWRNASEQ {
     emit:multiqc_report = MULTIQC.out.report.map { _meta, report -> [report] }.toList() // channel: /path/to/multiqc_report.html
     versions       = ch_versions                 // channel: [ path(versions.yml) ]
 
-    // 
-    // MODULE: fastp
-    // 
-    FASTP(
-        
-    )
 
     // 
     // MODULE: STAR genome generate
