@@ -17,7 +17,11 @@ include { STAR_ALIGN_CUSTOM      } from '../modules/local/star/align/main'
 include { GFFREAD_CUSTOM         } from '../modules/local/gffread_custom/main.nf'
 include { SALMON_INDEX           } from '../modules/nf-core/salmon/index/main'
 include { SALMON_QUANT           } from '../modules/nf-core/salmon/quant/main'
+include { CUSTOM_TX2GENE         } from '../modules/nf-core/custom/tx2gene/main'                                                                                                             
 include { TXIMETA_TXIMPORT       } from '../modules/nf-core/tximeta/tximport/main'
+// include { SUBREAD_FEATURECOUNTS  } from '../modules/nf-core/subread/featurecounts/main'
+include { SAMTOOLS_FAIDX         } from '../modules/nf-core/samtools/faidx/main'
+include { PICARD_MARKDUPLICATES  } from '../modules/nf-core/picard/markduplicates/main.nf'                                                                                            
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -79,13 +83,14 @@ workflow NEWRNASEQ {
     
     // TODO add logic to only unzip if the fasta and gtf are zipped
     GUNZIP_GTF(ch_gtf_meta)
-
+    ch_gtf_meta_unzipped = GUNZIP_GTF.out.gunzip 
     // 
     // MODULE: GUNZIP_FASTA
     // gunzip the fasta and GTF first if they are gzipped, STAR cant handle gzipped fastas and GTFs
     // 
     ch_fasta_meta = ch_fasta.map { fasta -> [ [id: 'genome'], fasta ] }
     GUNZIP_FASTA(ch_fasta_meta)
+    ch_fasta_meta_unzipped = GUNZIP_FASTA.out.gunzip 
 
 
     // 
@@ -98,8 +103,8 @@ workflow NEWRNASEQ {
     ch_gtf.dump(tag: "gtf")
 
     STAR_GENOMEGENERATE(
-        GUNZIP_FASTA.out.gunzip, // meta and fasta of reference genome
-        GUNZIP_GTF.out.gunzip, // meta and gtf of reference genome
+        ch_fasta_meta_unzipped, // meta and fasta of reference genome
+        ch_gtf_meta_unzipped,  // meta and gtf of reference genome
     )
     // get the [meta,index] tuple 
     ch_star_index = STAR_GENOMEGENERATE.out.index
@@ -109,16 +114,17 @@ workflow NEWRNASEQ {
     // 
     // MODULE: STAR alignment
     // 
+
     STAR_ALIGN_CUSTOM(
         ch_samplesheet, // [meta-map, reads] tuple: list of input FastQ files
-        ch_star_index, // STAR genome index (STAR_GENOMEGENERATE output)
-        GUNZIP_GTF.out.gunzip, // [meta-map, gtf] tuple of reference genome 
+        ch_star_index.first(), // STAR genome index (STAR_GENOMEGENERATE output)    // here we used first(), so the idx is emitted for each sample 
+        ch_gtf_meta_unzipped.first(), // [meta-map, gtf] tuple of reference genome  // here we used first(), so the gtf is emitted for each sample 
         false, // ignore gtf file
     )
-    ch_star_align_bam = STAR_ALIGN_CUSTOM.out.bam
-    ch_star_align_bam_sorted = STAR_ALIGN_CUSTOM.out.bam_sorted
+    // ch_star_align_bam = STAR_ALIGN_CUSTOM.out.bam
+    // ch_star_align_bam_sorted = STAR_ALIGN_CUSTOM.out.bam_sorted
     ch_star_align_bam_sorted_aligned = STAR_ALIGN_CUSTOM.out.bam_sorted_aligned
-    ch_star_align_bam_transcript = STAR_ALIGN_CUSTOM.out.bam_transcript
+    // ch_star_align_bam_transcript = STAR_ALIGN_CUSTOM.out.bam_transcript
 
 
     // TODO add scRNAseq support => add flag for UMI extraction and let user set the barcode pattern (bc_pattern param in UMItools extract)
@@ -160,13 +166,14 @@ workflow NEWRNASEQ {
     ch_genome_fasta = GUNZIP_FASTA.out.gunzip.map { _meta, fasta -> fasta }
 
     GFFREAD_CUSTOM(
-        GUNZIP_GTF.out.gunzip, // [meta, unzipped gtf] tuple
-        ch_genome_fasta // [meta, unzipped fasta] tuple
+        ch_gtf_meta_unzipped, // [meta, unzipped gtf] tuple
+        ch_genome_fasta // unzipped fasta
     )
     ch_gffread_fasta = GFFREAD_CUSTOM.out.transcriptome_fasta
 
     // DEBUG 
     ch_gffread_fasta.dump(tag: "gffread_transcriptome_fasta")
+
 
     // 
     // MODULE: Salmon index
@@ -198,22 +205,80 @@ workflow NEWRNASEQ {
                                 }
 
     SALMON_QUANT(
-        ch_samplesheet,         // [meta,reads] tuple: fastq files or single bam TODO reads mode or alignment mode
-        ch_salmon_quant_input   // [meta, index, gtf, transcript_fasta]: no transcript_fasta in reads mode 
+        ch_samplesheet,                 // [meta,reads] tuple: fastq files or single bam TODO reads mode or alignment mode
+        ch_salmon_quant_input.first()   // [meta, index, gtf, transcript_fasta]: no transcript_fasta in reads mode 
     )
     ch_multiqc_files = ch_multiqc_files.mix(SALMON_QUANT.out.json_info.map{ _meta, file -> file })
+    ch_salmon_results = SALMON_QUANT.out.results
+    ch_salmon_quant_dirs = ch_salmon_results
+                                .map { _meta, quant_dir -> quant_dir }
+                                .collect()
+    ch_salmon_quant_group = ch_salmon_quant_dirs.map { quant_dirs ->
+        tuple([id: 'all_samples'], quant_dirs)
+    }
+
+
+    // // 
+    // // MODULE: FEATURECOUNTS 
+    // //
+
+    // ch_featurecount_input = ch_star_align_bam_sorted_aligned
+    //                             .combine(ch_gtf)
+    // SUBREAD_FEATURECOUNTS(
+    //     ch_featurecount_input
+    // )
+    // ch_featurecount_counts = SUBREAD_FEATURECOUNTS.out.counts
+
+
+    // 
+    // MODULE: CUSTOM_TX2GENE
+    // 
+
+    CUSTOM_TX2GENE(
+        ch_gtf_meta_unzipped.first(),   // [meta, gtf] tuple of meta map of gtf file
+        ch_salmon_quant_group,  // all sample quantification directories
+        'salmon',               // type of quantification input
+        'gene_id',              // default
+        'gene_name'             // default
+    )
+    ch_tx2gene_out = CUSTOM_TX2GENE.out.tx2gene.first()
 
     // 
     // MODULE: TXIMPORT 
     //
     //for transcript-level counts --> gene-level counts
 
-    
+    TXIMETA_TXIMPORT(
+        ch_salmon_quant_group,  // all sample quantification directories
+        ch_tx2gene_out,
+        'salmon'                // type of quantification input
+    )
+
 
     // 
-    // MODULE: Picard duplicate marking without removal! 
-    // (Picard has no UMIs so biological duplicates are also removed if removal is not turnt off)
-    //
+    // MODULE: FAIDX
+    // 
+
+    ch_faidx_input = ch_fasta_meta_unzipped.map{ meta, fasta -> tuple(meta, fasta, [])}
+
+    SAMTOOLS_FAIDX(
+        ch_faidx_input, // self build input of samples, empty fai list
+        false           // No need for index size
+    )
+
+    ch_fai = SAMTOOLS_FAIDX.out.fai
+
+    // 
+    // MODULE: PICARD_MARKDUPLICATES
+    // 
+    // Picard marks duplicates
+
+    ch_markduplicates_input = ch_fasta_meta_unzipped.join(ch_fai)
+
+    PICARD_MARKDUPLICATES(
+        ch_star_align_bam_sorted_aligned,
+        ch_markduplicates_input.first()
+    )
 
     //
     // Collate and save software versions
