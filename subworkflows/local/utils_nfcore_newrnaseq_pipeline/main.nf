@@ -120,6 +120,11 @@ workflow PIPELINE_INITIALISATION {
                     return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
                 }
         }
+        .map { 
+            sample_id, meta, fastqs ->
+                def gz = fastqs[0].toString().endsWith('.gz')
+                return [ sample_id, meta + [ gz: gz ], fastqs ]
+        }
         .groupTuple()
         .map { samplesheet ->
             validateInputSamplesheet(samplesheet)
