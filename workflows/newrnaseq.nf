@@ -19,7 +19,6 @@ include { SALMON_INDEX           } from '../modules/nf-core/salmon/index/main'
 include { SALMON_QUANT           } from '../modules/nf-core/salmon/quant/main'
 include { CUSTOM_TX2GENE         } from '../modules/nf-core/custom/tx2gene/main'                                                                                                             
 include { TXIMETA_TXIMPORT       } from '../modules/nf-core/tximeta/tximport/main'
-// include { SUBREAD_FEATURECOUNTS  } from '../modules/nf-core/subread/featurecounts/main'
 include { SAMTOOLS_FAIDX         } from '../modules/nf-core/samtools/faidx/main'
 include { PICARD_MARKDUPLICATES  } from '../modules/nf-core/picard/markduplicates/main.nf'                                                                                            
 include { paramsSummaryMap       } from 'plugin/nf-schema'
@@ -79,19 +78,32 @@ workflow NEWRNASEQ {
     // 
 
     // TODO replace hardcoded 'genome' with actually useful identifier for downstream tasks?
-    ch_gtf_meta   = ch_gtf.map   { gtf   -> [ [id: 'genome'], gtf ] }
     
     // TODO add logic to only unzip if the fasta and gtf are zipped
-    GUNZIP_GTF(ch_gtf_meta)
-    ch_gtf_meta_unzipped = GUNZIP_GTF.out.gunzip 
+    ch_gtf_branched = ch_gtf.branch{ meta, _gtf ->
+                                        gz:    meta.gz
+                                        plain: true
+                                    }
+
+    GUNZIP_GTF(ch_gtf_branched.gz)
+
+    ch_gtf_meta_unzipped = GUNZIP_GTF.out.gunzip
+                            .map{ meta, gtf -> [meta + [gz: false], gtf] }
+                            .mix(ch_gtf_branched.plain)
     // 
     // MODULE: GUNZIP_FASTA
     // gunzip the fasta and GTF first if they are gzipped, STAR cant handle gzipped fastas and GTFs
     // 
-    ch_fasta_meta = ch_fasta.map { fasta -> [ [id: 'genome'], fasta ] }
-    GUNZIP_FASTA(ch_fasta_meta)
-    ch_fasta_meta_unzipped = GUNZIP_FASTA.out.gunzip 
+    ch_fasta_branched = ch_fasta.branch{ meta, _fasta ->
+                                            gz:     meta.gz
+                                            plain:  true
+                                        }
 
+    GUNZIP_FASTA(ch_fasta_branched.gz)
+
+    ch_fasta_meta_unzipped = GUNZIP_FASTA.out.gunzip
+                                .map{ meta, fasta -> [meta + [gz: false], fasta]}
+                                .mix(ch_fasta_branched.plain)
 
     // 
     // MODULE: STAR_GENOMEGENERATE
@@ -121,10 +133,8 @@ workflow NEWRNASEQ {
         ch_gtf_meta_unzipped.first(), // [meta-map, gtf] tuple of reference genome  // here we used first(), so the gtf is emitted for each sample 
         false, // ignore gtf file
     )
-    // ch_star_align_bam = STAR_ALIGN_CUSTOM.out.bam
-    // ch_star_align_bam_sorted = STAR_ALIGN_CUSTOM.out.bam_sorted
+    ch_multiqc_files = ch_multiqc_files.mix(STAR_ALIGN_CUSTOM.out.log_final.map { _meta, f -> f })
     ch_star_align_bam_sorted_aligned = STAR_ALIGN_CUSTOM.out.bam_sorted_aligned
-    // ch_star_align_bam_transcript = STAR_ALIGN_CUSTOM.out.bam_transcript
 
 
     // TODO add scRNAseq support => add flag for UMI extraction and let user set the barcode pattern (bc_pattern param in UMItools extract)
@@ -160,8 +170,8 @@ workflow NEWRNASEQ {
 
     // 
     // PROCESS: GFFREAD 
-    // to create transcriptome fasta from gtf and genome fasta ourselves (no download, etc. of transcriptome necessary)
     // 
+    // to create transcriptome fasta from gtf and genome fasta ourselves (no download, etc. of transcriptome necessary)
 
     ch_genome_fasta = GUNZIP_FASTA.out.gunzip.map { _meta, fasta -> fasta }
 
@@ -183,7 +193,7 @@ workflow NEWRNASEQ {
                                 .combine(ch_genome_fasta)
                                 .map{
                                     transcriptome, reference ->
-                                        tuple([id: 'salmon_index'], transcriptome, reference)
+                                        tuple([id: file(reference).name], transcriptome, reference)
                                 }
     
     SALMON_INDEX(
@@ -191,24 +201,25 @@ workflow NEWRNASEQ {
     )
     ch_salmon_index = SALMON_INDEX.out.index
     ch_salmon_index_path = ch_salmon_index.map { _meta, index -> index }
+    ch_gft_path = ch_gtf_meta_unzipped.map { _meta , gtf -> gtf }
 
     // 
     // MODULE: Salmon quantification
     //
-
+    //
     ch_salmon_quant_input = ch_salmon_index_path
-                                .combine(ch_gtf)
+                                .combine(ch_gft_path)
                                 .combine(ch_gffread_fasta)
                                 .map{
                                     index, gtf, transcriptome ->
-                                        tuple([id: 'salmon_quant'], index, gtf, transcriptome)
+                                        tuple([id: file(gtf).name], index, gtf, transcriptome)
                                 }
 
     SALMON_QUANT(
         ch_samplesheet,                 // [meta,reads] tuple: fastq files or single bam TODO reads mode or alignment mode
         ch_salmon_quant_input.first()   // [meta, index, gtf, transcript_fasta]: no transcript_fasta in reads mode 
     )
-    ch_multiqc_files = ch_multiqc_files.mix(SALMON_QUANT.out.json_info.map{ _meta, file -> file })
+    ch_multiqc_files = ch_multiqc_files.mix(SALMON_QUANT.out.results.map { _meta, dir -> dir })
     ch_salmon_results = SALMON_QUANT.out.results
     ch_salmon_quant_dirs = ch_salmon_results
                                 .map { _meta, quant_dir -> quant_dir }
@@ -218,30 +229,18 @@ workflow NEWRNASEQ {
     }
 
 
-    // // 
-    // // MODULE: FEATURECOUNTS 
-    // //
-
-    // ch_featurecount_input = ch_star_align_bam_sorted_aligned
-    //                             .combine(ch_gtf)
-    // SUBREAD_FEATURECOUNTS(
-    //     ch_featurecount_input
-    // )
-    // ch_featurecount_counts = SUBREAD_FEATURECOUNTS.out.counts
-
-
     // 
     // MODULE: CUSTOM_TX2GENE
     // 
 
     CUSTOM_TX2GENE(
         ch_gtf_meta_unzipped.first(),   // [meta, gtf] tuple of meta map of gtf file
-        ch_salmon_quant_group,  // all sample quantification directories
-        'salmon',               // type of quantification input
-        'gene_id',              // default
-        'gene_name'             // default
+        ch_salmon_quant_group,          // all sample quantification directories
+        'salmon',                       // type of quantification input
+        'gene_id',                      // default
+        'gene_name'                     // default
     )
-    ch_tx2gene_out = CUSTOM_TX2GENE.out.tx2gene.first()
+    ch_tx2gene_out = CUSTOM_TX2GENE.out.tx2gene
 
     // 
     // MODULE: TXIMPORT 
@@ -279,7 +278,8 @@ workflow NEWRNASEQ {
         ch_star_align_bam_sorted_aligned,
         ch_markduplicates_input.first()
     )
-
+    ch_multiqc_files = ch_multiqc_files.mix(PICARD_MARKDUPLICATES.out.metrics.map { _meta, f -> f })
+    
     //
     // Collate and save software versions
     //

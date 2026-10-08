@@ -136,11 +136,21 @@ workflow PIPELINE_INITIALISATION {
         .set { ch_samplesheet }
 
     
-    // pass the input gtf file (as a path) through to the root main.nf
-    ch_gtf = channel.of(gtf)
+    // create a channel for the gtf file, adding metadata
+    ch_gtf = channel.of(file(gtf))
+                .map{
+                    file -> 
+                    def gz = file.name.endsWith('.gz')
+                    [[id:file.name, gz: gz], file]
+                }
 
-    // pass the input fasta file (as a path) through to the root main.nf
-    ch_fasta = channel.of(fasta)
+    // create a channel for the gtf file, adding metadata
+    ch_fasta = channel.of(file(fasta))
+                .map{
+                    file -> 
+                    def gz = file.name.endsWith('.gz')
+                    [[id:file.name, gz: gz], file]
+                }
 
     emit:
     samplesheet = ch_samplesheet
@@ -211,6 +221,11 @@ def validateInputParameters() {
 //
 def validateInputSamplesheet(input) {
     def (metas, fastqs) = input[1..2]
+
+    // alternative way to check sample_id uniqueness, if nextflows parameter-validator fails.
+    // if (metas.size() > 1) {
+    //     error("Duplicate sample name in samplesheet: '${metas[0].id}' appears ${metas.size()} times. Sample names must be unique.")
+    // }
 
     // Check that multiple runs of the same sample are of the same datatype i.e. single-end / paired-end
     def endedness_ok = metas.collect{ meta -> meta.single_end }.unique().size == 1
