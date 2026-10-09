@@ -34,6 +34,7 @@ workflow PIPELINE_INITIALISATION {
     input             //  string: Path to input samplesheet
     fasta             //  string: Path to input reference genome in fasta format
     gtf               //  string: Path to input GTF file of the input genome
+    genome            // string: igenomes accession
     help              // boolean: Display help message and exit
     help_full         // boolean: Show the full help message
     show_hidden       // boolean: Show hidden parameters in the help message
@@ -135,17 +136,28 @@ workflow PIPELINE_INITIALISATION {
         }
         .set { ch_samplesheet }
 
-    
-    // create a channel for the gtf file, adding metadata
-    ch_gtf = channel.of(file(gtf))
+    //
+    // create a channels for the gtf&fasta files, adding metadata
+    //
+
+    // first check if reference was provided via igenomes
+    def gtf_accessed   = params.gtf   ?: getGenomeAttribute('gtf')
+    def fasta_accessed = params.fasta ?: getGenomeAttribute('fasta')
+
+    if (!fasta_accessed || !gtf_accessed) {
+        error "Provide --genome (one of ${params.genomes.keySet()}) or both --fasta and --gtf"
+    }
+
+    // then declare the meta channels for the references
+    ch_gtf = channel.of(file(gtf_accessed))
                 .map{
                     file -> 
                     def gz = file.name.endsWith('.gz')
                     [[id:file.name, gz: gz], file]
                 }
+                
 
-    // create a channel for the gtf file, adding metadata
-    ch_fasta = channel.of(file(fasta))
+    ch_fasta = channel.of(file(fasta_accessed))
                 .map{
                     file -> 
                     def gz = file.name.endsWith('.gz')

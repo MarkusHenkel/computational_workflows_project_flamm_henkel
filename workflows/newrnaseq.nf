@@ -65,11 +65,12 @@ workflow NEWRNASEQ {
     )
     // add Fastp output in JSON format to the MultiQC channel
     ch_multiqc_files = ch_multiqc_files.mix(FASTP.out.json.map{ _meta, file -> file })
+    ch_samplesheet_trimmed = FASTP.out.reads
 
     //
     // MODULE: FASTQC
     //
-    FASTQC_2(FASTP.out.reads)
+    FASTQC_2(ch_samplesheet_trimmed)
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC_2.out.zip.map{ _meta, file -> file })
 
     // 
@@ -109,11 +110,6 @@ workflow NEWRNASEQ {
     // MODULE: STAR_GENOMEGENERATE
     // 
 
-    // DEBUG
-    ch_samplesheet.dump(tag: "samplesheet")
-    ch_fasta.dump(tag: "fasta")
-    ch_gtf.dump(tag: "gtf")
-
     STAR_GENOMEGENERATE(
         ch_fasta_meta_unzipped, // meta and fasta of reference genome
         ch_gtf_meta_unzipped,  // meta and gtf of reference genome
@@ -128,7 +124,7 @@ workflow NEWRNASEQ {
     // 
 
     STAR_ALIGN_CUSTOM(
-        ch_samplesheet, // [meta-map, reads] tuple: list of input FastQ files
+        ch_samplesheet_trimmed, // [meta-map, reads] tuple: list of input FastQ files
         ch_star_index.first(), // STAR genome index (STAR_GENOMEGENERATE output)    // here we used first(), so the idx is emitted for each sample 
         ch_gtf_meta_unzipped.first(), // [meta-map, gtf] tuple of reference genome  // here we used first(), so the gtf is emitted for each sample 
         false, // ignore gtf file
@@ -173,7 +169,7 @@ workflow NEWRNASEQ {
     // 
     // to create transcriptome fasta from gtf and genome fasta ourselves (no download, etc. of transcriptome necessary)
 
-    ch_genome_fasta = GUNZIP_FASTA.out.gunzip.map { _meta, fasta -> fasta }
+    ch_genome_fasta = ch_fasta_meta_unzipped.map { _meta, fasta -> fasta }
 
     GFFREAD_CUSTOM(
         ch_gtf_meta_unzipped, // [meta, unzipped gtf] tuple
@@ -216,8 +212,8 @@ workflow NEWRNASEQ {
                                 }
 
     SALMON_QUANT(
-        ch_samplesheet,                 // [meta,reads] tuple: fastq files or single bam TODO reads mode or alignment mode
-        ch_salmon_quant_input.first()   // [meta, index, gtf, transcript_fasta]: no transcript_fasta in reads mode 
+        ch_samplesheet_trimmed,             // [meta,reads] tuple: fastq files or single bam TODO reads mode or alignment mode
+        ch_salmon_quant_input.first()       // [meta, index, gtf, transcript_fasta]: no transcript_fasta in reads mode 
     )
     ch_multiqc_files = ch_multiqc_files.mix(SALMON_QUANT.out.results.map { _meta, dir -> dir })
     ch_salmon_results = SALMON_QUANT.out.results
