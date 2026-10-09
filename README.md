@@ -17,11 +17,12 @@
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
 [![Launch on Seqera Platform](https://img.shields.io/badge/Launch%20%F0%9F%9A%80-Seqera%20Platform-%234256e7)](https://cloud.seqera.io/launch?pipeline=https://github.com/nf-core/newrnaseq)
 
-[![Get help on Slack](http://img.shields.io/badge/slack-nf--core%20%23newrnaseq-4A154B?labelColor=000000&logo=slack)](https://nfcore.slack.com/channels/newrnaseq)[![Follow on Bluesky](https://img.shields.io/badge/bluesky-%40nf__core-1185fe?labelColor=000000&logo=bluesky)](https://bsky.app/profile/nf-co.re)[![Follow on Mastodon](https://img.shields.io/badge/mastodon-nf__core-6364ff?labelColor=FFFFFF&logo=mastodon)](https://mstdn.science/@nf_core)[![Watch on YouTube](http://img.shields.io/badge/youtube-nf--core-FF0000?labelColor=000000&logo=youtube)](https://www.youtube.com/c/nf-core)
+<!-- [![Get help on Slack](http://img.shields.io/badge/slack-nf--core%20%23newrnaseq-4A154B?labelColor=000000&logo=slack)](https://nfcore.slack.com/channels/newrnaseq)[![Follow on Bluesky](https://img.shields.io/badge/bluesky-%40nf__core-1185fe?labelColor=000000&logo=bluesky)](https://bsky.app/profile/nf-co.re)[![Follow on Mastodon](https://img.shields.io/badge/mastodon-nf__core-6364ff?labelColor=FFFFFF&logo=mastodon)](https://mstdn.science/@nf_core)[![Watch on YouTube](http://img.shields.io/badge/youtube-nf--core-FF0000?labelColor=000000&logo=youtube)](https://www.youtube.com/c/nf-core) -->
 
 ## Introduction
 
-**nf-core/newrnaseq** is a bioinformatics pipeline that ...
+**nf-core/newrnaseq** is a bioinformatics pipeline that can be used to analyse bulk RNA single- and paired-end sequencing data (no UMIs) obtained from organisms with a reference genome and annotation. It takes a samplesheet with FASTQ files as input, performs quality control (QC), trimming and alignment, and produces a gene expression matrix and extensive QC report.
+
 
 <!-- TODO nf-core:
    Complete this sentence with a 2-3 sentence summary of what types of data the pipeline ingests, a brief overview of the
@@ -31,7 +32,18 @@
 
 <!-- TODO nf-core: Include a figure that guides the user through the major workflow steps. Many nf-core
      workflows use the "tube map" design for that. See https://nf-co.re/docs/community/brand/workflow-schematics#examples for examples.   -->
-<!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->1. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))2. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
+<!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->
+
+1. Read QC ([`FastQC` nf-core module](https://nf-co.re/modules/fastqc))
+2. Unzipping of FastQ, GTF and genome Fasta files ([`GUNZIP` nf-core module](https://nf-co.re/modules/gunzip))
+3. Generating index for genome Fasta ([`samtools` nf-core module](https://nf-co.re/modules/samtools_faidx))
+2. Trimming of adapters ([`fastp` nf-core module](https://nf-co.re/modules/fastp))
+3. Trimmed read QC ([`FastQC` nf-core module](https://nf-co.re/modules/fastqc))
+4. Quantification ([`Salmon` nf-core modules](https://nf-co.re/modules/salmon_quant))
+5. Gene-level counts ([`tximport` nf-core modules](https://nf-co.re/modules/tximeta_tximport))
+4. Alignment ([`STAR` nf-core modules](https://nf-co.re/modules/star_align))
+5. Mark duplicate reads ([`Picard` nf-core modules](https://nf-co.re/modules/picard_markduplicates/))
+6. Present pipeline results summary ([`MultiQC` nf-core module](https://nf-co.re/modules/multiqc))
 
 ## Usage
 
@@ -63,6 +75,8 @@ nextflow run nf-core/newrnaseq \
    -profile <docker/singularity/.../institute> \
    --input samplesheet.csv \
    --outdir <OUTDIR>
+   --gtf <file.gtf>
+   --fasta <genome.fasta>
 ```
 
 > [!WARNING]
@@ -78,17 +92,20 @@ For more details about the output files and reports, please refer to the
 
 ## Credits
 
-nf-core/newrnaseq was originally written by Benedikt Flamm, Markus Henkel.
+nf-core/newrnaseq was originally written by Benedikt Flamm and Markus Henkel.
 
-We thank the following people for their extensive assistance in the development of this pipeline:
+<!-- We thank the following people for their extensive assistance in the development of this pipeline: -->
 
 <!-- TODO nf-core: If applicable, make list of people who have also contributed -->
 
-## Contributions and Support
+<!-- ## Contributions and Support -->
 
-If you would like to contribute to this pipeline, please see the [contributing guidelines](docs/CONTRIBUTING.md).
+<!-- If you would like to contribute to this pipeline, please see the [contributing guidelines](docs/CONTRIBUTING.md).
 
-For further information or help, don't hesitate to get in touch on the [Slack `#newrnaseq` channel](https://nfcore.slack.com/channels/newrnaseq) (you can join with [this invite](https://nf-co.re/join/slack)).
+For further information or help, don't hesitate to get in touch on the [Slack `#newrnaseq` channel](https://nfcore.slack.com/channels/newrnaseq) (you can join with [this invite](https://nf-co.re/join/slack)). -->
+
+
+
 
 ## Citations
 
