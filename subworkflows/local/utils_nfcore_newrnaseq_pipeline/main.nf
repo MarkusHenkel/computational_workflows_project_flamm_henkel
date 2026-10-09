@@ -34,6 +34,7 @@ workflow PIPELINE_INITIALISATION {
     input             //  string: Path to input samplesheet
     fasta             //  string: Path to input reference genome in fasta format
     gtf               //  string: Path to input GTF file of the input genome
+    genome            // string: igenomes accession
     help              // boolean: Display help message and exit
     help_full         // boolean: Show the full help message
     show_hidden       // boolean: Show hidden parameters in the help message
@@ -135,12 +136,33 @@ workflow PIPELINE_INITIALISATION {
         }
         .set { ch_samplesheet }
 
-    
-    // pass the input gtf file (as a path) through to the root main.nf
-    ch_gtf = channel.of(gtf)
+    //
+    // create a channels for the gtf&fasta files, adding metadata
+    //
 
-    // pass the input fasta file (as a path) through to the root main.nf
-    ch_fasta = channel.of(fasta)
+    // first check if reference was provided via igenomes
+    def gtf_accessed   = params.gtf   ?: getGenomeAttribute('gtf')
+    def fasta_accessed = params.fasta ?: getGenomeAttribute('fasta')
+
+    if (!fasta_accessed || !gtf_accessed) {
+        error "Provide --genome (one of ${params.genomes.keySet()}) or both --fasta and --gtf"
+    }
+
+    // then declare the meta channels for the references
+    ch_gtf = channel.of(file(gtf_accessed))
+                .map{
+                    file -> 
+                    def gz = file.name.endsWith('.gz')
+                    [[id:file.name, gz: gz], file]
+                }
+                
+
+    ch_fasta = channel.of(file(fasta_accessed))
+                .map{
+                    file -> 
+                    def gz = file.name.endsWith('.gz')
+                    [[id:file.name, gz: gz], file]
+                }
 
     emit:
     samplesheet = ch_samplesheet
@@ -211,6 +233,11 @@ def validateInputParameters() {
 //
 def validateInputSamplesheet(input) {
     def (metas, fastqs) = input[1..2]
+
+    // alternative way to check sample_id uniqueness, if nextflows parameter-validator fails.
+    // if (metas.size() > 1) {
+    //     error("Duplicate sample name in samplesheet: '${metas[0].id}' appears ${metas.size()} times. Sample names must be unique.")
+    // }
 
     // Check that multiple runs of the same sample are of the same datatype i.e. single-end / paired-end
     def endedness_ok = metas.collect{ meta -> meta.single_end }.unique().size == 1

@@ -13,3 +13,19 @@ report_section_order:
 export_plots: true
 
 disable_version_detection: true
+
+module_order:
+  - fastqc:
+      name: "FastQC (raw)"
+      info: "FastQC before trimming"
+      path_filters:
+        - "*_raw_fastqc.zip"
+  - fastp
+  - fastqc:
+      name: "FastQC (trimmed)"
+      info: "FastQC after trimming with fastp"
+      path_filters:
+        - "*_trimmed_fastqc.zip"
+  - star
+  - salmon
+  - picard

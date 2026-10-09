@@ -40,7 +40,7 @@
                 "errorMessage": "Sequencing platform must not contain spaces (e.g. 'ILLUMINA', 'ONT', 'PACBIO')"
             }
         },
-        "required": ["sample", "fastq_1"],
-        "uniqueEntries": ["sample"]
-    }
+        "required": ["sample", "fastq_1"]
+    },
+    "uniqueEntries": ["sample"]
 }
