@@ -153,7 +153,7 @@
                 "skipAlignment": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Skip the alignment with STAR as well as the duplication removal via piccard, since this requires an alignment."
+                    "description": "Skip the alignment with STAR as well as the duplication marking via picard, since this requires an alignment."
                 }
             }
         },
