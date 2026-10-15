@@ -26,7 +26,6 @@ include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_newr
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-// TODO nf-core: Remove this line if you don't need a FASTA file
 //   This is an example of how to use getGenomeAttribute() to fetch parameters
 //   from igenomes.config using `--genome`
 params.fasta = getGenomeAttribute('fasta')  //pull ref genome from igenomes
@@ -57,6 +56,8 @@ workflow NFCORE_NEWRNASEQ {
         samplesheet,
         fasta,
         gtf,
+        params.skipTrimming,
+        params.skipAlignment,
         params.multiqc_config,
         params.multiqc_logo,
         params.multiqc_methods_description,

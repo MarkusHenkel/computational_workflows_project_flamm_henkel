@@ -140,6 +140,23 @@
                 }
             }
         },
+        "processing_options": {
+            "title": "Processing options",
+            "type": "object",
+            "fa_icon": "fas fa-cogs",
+            "properties": {
+                "skipTrimming": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Skip FASTP trimming and use the input FASTQ files directly."
+                },
+                "skipAlignment": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Skip the alignment with STAR as well as the duplication marking via picard, since this requires an alignment."
+                }
+            }
+        },
         "generic_options": {
             "title": "Generic options",
             "type": "object",
@@ -252,6 +269,9 @@
         },
         {
             "$ref": "#/$defs/institutional_config_options"
+        },
+        {
+            "$ref": "#/$defs/processing_options"
         },
         {
             "$ref": "#/$defs/generic_options"
