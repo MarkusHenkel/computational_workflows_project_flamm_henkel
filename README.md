@@ -123,7 +123,59 @@ nextflow run nf-core/newrnaseq \
    --genome <igenome_name>
 ```
 
-where `igenome_name` is one of the following: **TODO**. 
+where `igenome_name` is one of the following: 
+
+- Ensembl / NCBI / UCSC-based (human):
+
+  - GRCh37
+  - GRCh38
+  - CHM13
+  - hg38
+  - hg19
+
+- Mouse:
+
+  - GRCm38
+  - mm10
+
+- Other species (Ensembl):
+
+  - TAIR10
+  - EB2
+  - UMD3.1
+  - WBcel235
+  - CanFam3.1
+  - GRCz10
+  - BDGP6
+  - EquCab2
+  - EB1
+  - Galgal4
+  - Gm01
+  - Mmul_1
+  - IRGSP-1.0
+  - CHIMP2.1.4
+  - Rnor_5.0
+  - Rnor_6.0
+  - R64-1-1
+  - EF2
+  - Sbi1
+  - Sscrofa10.2
+  - AGPv3
+
+- Other species (UCSC):
+
+  - bosTau8
+  - ce10
+  - canFam3
+  - danRer10
+  - dm6
+  - equCab2
+  - galGal4
+  - panTro4
+  - rn6
+  - sacCer3
+  - susScr3
+ 
 <!-- TODO nf-core: update the following command to include all required parameters for a minimal example -->
 
 Or if instead of choosing an iGenome, specify a Fasta and GTF file of the reference genome:
@@ -317,7 +369,7 @@ nextflow run nf-core/newrnaseq \
 <!-- > [!WARNING]
 > Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_; see [docs](https://nf-co.re/docs/running/run-pipelines#using-parameter-files). -->
 
-<!-- For more details and further functionality, please refer to the [usage documentation](https://nf-co.re/newrnaseq/usage) and the [parameter documentation](https://nf-co.re/newrnaseq/parameters). -->
+ <!-- For more details and further functionality, please refer to the [usage documentation](https://nf-co.re/newrnaseq/usage) and the [parameter documentation](https://nf-co.re/newrnaseq/parameters).  -->
 
 ## Output
 
