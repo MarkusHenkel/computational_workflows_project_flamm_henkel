@@ -29,3 +29,17 @@ module_order:
   - star
   - salmon
   - picard
+  - custom_content
+
+custom_data:
+  gene_counts_pca:
+    section_name: "PCA: gene counts"
+    description: "PCA of log2(gene counts + 1). Each dot is one sample. Axis labels show the variance explained by each component."
+  gene_tpm_pca:
+    section_name: "PCA: gene TPM"
+    description: "PCA of log2(gene TPM + 1). Each dot is one sample. Axis labels show the variance explained by each component."
+
+custom_content:
+  order:
+    - gene_counts_pca
+    - gene_tpm_pca
