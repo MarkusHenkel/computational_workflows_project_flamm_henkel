@@ -18,7 +18,8 @@ include { SAMTOOLS_SORT as SAMTOOLS_SORT_SALMON } from '../modules/nf-core/samto
 include { CUSTOM_TX2GENE                        } from '../modules/nf-core/custom/tx2gene/main'                                                                                                             
 include { TXIMETA_TXIMPORT                      } from '../modules/nf-core/tximeta/tximport/main'
 include { SAMTOOLS_FAIDX                        } from '../modules/nf-core/samtools/faidx/main'
-include { PICARD_MARKDUPLICATES                 } from '../modules/nf-core/picard/markduplicates/main.nf'                                                                                            
+include { PICARD_MARKDUPLICATES                 } from '../modules/nf-core/picard/markduplicates/main.nf'
+include { PYTHON_PCA                            } from '../modules/local/python_pca/main.nf'
 include { paramsSummaryMap                      } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc                  } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML                } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -253,7 +254,30 @@ workflow NEWRNASEQ {
         ch_tx2gene_out,
         'salmon'                // type of quantification input
     )
+    ch_tximeta_gene_counts = TXIMETA_TXIMPORT.out.counts_gene
+    ch_tximeta_gene_tpm = TXIMETA_TXIMPORT.out.tpm_gene
 
+    // 
+    // MODULE: PYTHON_PCA
+    //
+    // dimensionality reduction of every  with one dot for each sample 
+
+
+    // add metadata (e.g. gene counts or gene tpm) for the plot description
+    ch_tximeta_gene_counts = ch_tximeta_gene_counts.map { meta, path -> [meta + [counts_type: "gene_raw"], path]} 
+    ch_tximeta_gene_tpm = ch_tximeta_gene_tpm.map { meta, path -> [meta + [counts_type: "gene_tpm"] , path]} 
+
+    // combine into one channel for parallelization and to only import and call python_pca once
+    ch_pca_input = ch_tximeta_gene_counts.mix(ch_tximeta_gene_tpm)
+
+    PYTHON_PCA(
+        ch_pca_input
+    )
+
+    ch_pca_plots = PYTHON_PCA.out.pca_plot
+
+    // add output (path) to MultiQC channel 
+    ch_multiqc_files = ch_multiqc_files.mix(ch_pca_plots)
 
     //
     // Collate and save software versions
