@@ -173,7 +173,6 @@ where `igenome_name` is one of the following:
   - galGal4
   - panTro4
   - rn6
-  - sacCer3
   - susScr3
  
 <!-- TODO nf-core: update the following command to include all required parameters for a minimal example -->
