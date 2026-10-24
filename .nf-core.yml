@@ -10,6 +10,8 @@ lint:
   nextflow_config:
     - manifest.homePage
   included_configs: False
+  multiqc_config:
+    - report_comment
 
 template:
   org: nf-core
