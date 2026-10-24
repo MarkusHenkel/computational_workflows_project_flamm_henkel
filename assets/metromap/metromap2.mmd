@@ -1,0 +1,93 @@
+%%metro title: RNAseq-Flamm_Henkel
+%%metro compact_offsets: true
+%%metro line_spread: centered
+%%metro line: main | Default | #0570b0
+%%metro line: skipTrim | Default + --skipTrimming | #ff8c00
+%%metro line: skipAlign | Default + --skipAlignment | #f5c542
+%%metro line: skipTrimAlign | Default + --skipTrimming + --skipAlignment | #e63946
+%%metro file: CSV_IN | CSV
+%%metro file: FASTA_IN | FASTA
+%%metro file: GTF_IN | GTF
+%%metro file: HTML_OUT | HTML
+
+graph LR
+    subgraph input [Input Processing]
+        CSV_IN[ ]
+        FASTA_IN[ ]
+        GTF_IN[ ]
+
+        gunzip_gtf([Gunzip GTF])
+        gunzip_fasta([Gunzip FASTA])
+
+        GTF_IN --> |main,skipAlign,skipTrim,skipTrimAlign| gunzip_gtf
+        FASTA_IN --> |main,skipAlign,skipTrim,skipTrimAlign| gunzip_fasta
+    end
+    subgraph qc [QC]
+
+    end
+    subgraph trimming [Trimming]
+        fastqc[FastQC]
+        fastp[fastp]
+
+        fastqc -->|main,skipAlign| fastp
+    end
+    subgraph qc [QC]
+        fastqc2([FastQC2])
+    end
+    subgraph align [Alignment]
+        samtools_faidx([Samtools_faidx])
+        star_index([STAR_genomegenerate])
+        star_align([STAR_align])
+
+        samtools_faidx -->|main,skipTrim| star_index
+        star_index -->|main,skipTrim| star_align
+    end
+
+    subgraph pseudo [Pseudo-Alignment]
+
+    end
+
+    subgraph quant [Quantification]
+        salmon_index([Salmon_index])
+        salmon_quant([Salmon_quant])
+        tx2gene([tx2gene])
+        tximport([tximport])
+        gffread([GffRead])
+
+        gffread --> |main,skipAlign,skipTrim,skipTrimAlign| salmon_index
+        salmon_index --> |main,skipAlign,skipTrim,skipTrimAlign| salmon_quant
+        salmon_quant --> |main,skipAlign,skipTrim,skipTrimAlign| tx2gene
+        tx2gene --> |main,skipAlign,skipTrim,skipTrimAlign| tximport
+    end
+    subgraph postprocessing [Post-process.]
+        samtools_sort([Samtools_sort])
+        picard([Picard_Markduplicates])
+        python_pca([Python_PCA])
+        HTML_OUT[ ]
+        multiqc([MultiQC])
+
+        samtools_sort --> |main,skipTrim| picard
+        picard --> |main,skipTrim| python_pca
+        python_pca --> |main,skipAlign,skipTrim,skipTrimAlign| multiqc
+        multiqc --> |main,skipAlign,skipTrim,skipTrimAlign| HTML_OUT
+    end
+
+    %% ---- Trimming path (main, skipAlign): goes through the Trimming section ----
+    CSV_IN --> |main,skipAlign| fastqc
+    gunzip_gtf --> |main,skipAlign| fastqc
+    gunzip_fasta --> |main,skipAlign| fastqc
+    fastp --> |main,skipAlign| fastqc2
+
+    %% ---- --skipTrimming: goes around the Trimming section ----
+    CSV_IN --> |skipTrim,skipTrimAlign| fastqc2
+    gunzip_gtf --> |skipTrim,skipTrimAlign| fastqc2
+    gunzip_fasta --> |skipTrim,skipTrimAlign| fastqc2
+
+    %% ---- Alignment path (main, skipTrim) ----
+    fastqc2 --> |main,skipTrim| samtools_faidx
+    star_align --> |main,skipTrim| gffread
+    tximport --> |main,skipTrim| samtools_sort
+
+    %% ---- --skipAlignment: goes around Alignment, Samtools_sort and Picard ----
+    fastqc2 --> |skipAlign,skipTrimAlign| gffread
+    tximport --> |skipAlign,skipTrimAlign| python_pca
