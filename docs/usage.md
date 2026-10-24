@@ -1,0 +1,263 @@
+## Usage
+
+
+### Introduction
+
+<!-- TODO nf-core: Add documentation about anything specific to running your pipeline. For general topics, please point to (and add to) the main nf-core website. -->
+
+
+In order to run the pipeline, a samplesheet and a reference genome is required. 
+The pipeline supports the input of a reference genome both by name (via iGenomes) and by a combination of Fasta and GTF files. The respective iGenome names can be found below.
+
+### Samplesheet input
+
+
+You will need to create a samplesheet with information about the samples you would like to analyse before running the pipeline. 
+It has to be a comma-separated file with 3 columns and a header row.
+Each row represents a fastq file (single-end) or a pair of fastq files (paired end).
+Example:
+
+`samplesheet.csv`:
+
+```csv
+sample,fastq_1,fastq_2,strandedness
+CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz,forward
+```
+
+
+Use this parameter to specify its location. 
+
+```bash
+--input '[path to samplesheet file]'
+```
+
+<!-- #### Multiple runs of the same sample
+
+The `sample` identifiers have to be the same when you have re-sequenced the same sample more than once e.g. to increase sequencing depth. The pipeline will concatenate the raw reads before performing any downstream analysis. Below is an example for the same sample sequenced across 3 lanes:
+
+```csv title="samplesheet.csv"
+sample,fastq_1,fastq_2
+CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
+CONTROL_REP1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz
+CONTROL_REP1,AEG588A1_S1_L004_R1_001.fastq.gz,AEG588A1_S1_L004_R2_001.fastq.gz
+``` -->
+
+#### Full samplesheet
+
+The pipeline will auto-detect whether a sample is single- or paired-end using the information provided in the samplesheet. The samplesheet can have as many columns as you desire, however, there is a strict requirement for the first 4 columns to match those defined in the table below.
+
+A final samplesheet file consisting of both single- and paired-end data may look something like the one below. Make sure that all sample IDs are unique,
+
+```csv title="samplesheet.csv"
+sample,fastq_1,fastq_2, strandedness
+CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz,auto
+CONTROL_REP2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz,reverse
+CONTROL_REP3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz,reverse
+TREATMENT_REP1,AEG588A4_S4_L003_R1_001.fastq.gz,forward
+TREATMENT_REP2,AEG588A5_S5_L003_R1_001.fastq.gz,forward
+TREATMENT_REP3,AEG588A6_S6_L003_R1_001.fastq.gz,AEG588A6_S6_L004_R1_001.fastq.gz,auto
+```
+
+| Column    | Description                                                                                                                                                                            |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sample`  | Custom sample name. This entry will be identical for multiple sequencing libraries/runs from the same sample. Spaces in sample names are automatically converted to underscores (`_`). |
+| `fastq_1` | Full path to FastQ file for Illumina short reads 1. Gzipping is optional, however if file `fastq_2` is zipped then `fastq_1` has to be gzipped as well. File extension has to be either ".fastq.gz"/".fq.gz" or  ".fastq"/".fq" if the file is zipped or not zipped respectively.                                                             |
+| `fastq_2` | Full path to FastQ file for Illumina short reads 2. Gzipping is optional, however if file `fastq_1` is zipped then `fastq_2` has to be gzipped as well. File extension has to be either ".fastq.gz"/".fq.gz" or ".fastq"/".fq" if the file is zipped or not zipped respectively.                                                             |
+|`strandedness`| String indicating the strandedness of the reads. Has to be one of: `forward`, `reverse`, `auto`. Choose `auto` if strandedness should be determined automatically by Salmon (more specifically the SALMON_QUANT step). |
+
+<!-- TODO link sometimes works and sometimes doesnt immediately afterwards -->
+An [example samplesheet](../assets/samplesheet.csv) has been provided in the pipeline's `assets/` directory.
+
+### Running the pipeline
+
+The typical command for running the pipeline is as follows:
+
+<!-- ```bash
+nextflow run nf-core/newrnaseq --input ./samplesheet.csv --outdir ./results --genome GRCh37 -profile docker
+``` -->
+
+```bash
+nextflow run nf-core/newrnaseq \
+   -profile <docker/singularity/.../institute> \
+   --input samplesheet.csv \
+   --outdir <OUTDIR> \
+   --genome <igenome_name>
+```
+
+where `igenome_name` is one of the following: 
+
+- Ensembl / NCBI / UCSC-based (human):
+
+  - GRCh37
+  - GRCh38
+  - CHM13
+  - hg38
+  - hg19
+
+- Mouse:
+
+  - GRCm38
+  - mm10
+
+- Other species (Ensembl):
+
+  - TAIR10
+  - EB2
+  - UMD3.1
+  - WBcel235
+  - CanFam3.1
+  - GRCz10
+  - BDGP6
+  - EquCab2
+  - EB1
+  - Galgal4
+  - Gm01
+  - Mmul_1
+  - IRGSP-1.0
+  - CHIMP2.1.4
+  - Rnor_5.0
+  - Rnor_6.0
+  - R64-1-1
+  - EF2
+  - Sbi1
+  - Sscrofa10.2
+  - AGPv3
+
+- Other species (UCSC):
+
+  - bosTau8
+  - ce10
+  - canFam3
+  - danRer10
+  - dm6
+  - equCab2
+  - galGal4
+  - panTro4
+  - rn6
+  - susScr3
+ 
+<!-- TODO nf-core: update the following command to include all required parameters for a minimal example -->
+
+Or if instead of choosing an iGenome, specify a Fasta and GTF file of the reference genome:
+```bash
+nextflow run nf-core/newrnaseq \
+   -profile <docker/singularity/.../institute> \
+   --input samplesheet.csv \
+   --outdir <OUTDIR> \
+   --gtf <file.gtf> \
+   --fasta <genome.fasta>
+```
+
+This will launch the pipeline with the `docker` configuration profile. See below for more information about profiles.
+
+Note that the pipeline will create the following files in your working directory:
+
+```bash
+work                # Directory containing the nextflow working files
+<OUTDIR>            # Finished results in specified location (defined with --outdir)
+.nextflow_log       # Log file from Nextflow
+# Other nextflow hidden files, eg. history of pipeline runs and old logs.
+```
+<!-- 
+If you wish to repeatedly use the same parameters for multiple runs, rather than specifying each flag in the command, you can specify these in a params file.
+
+Pipeline settings can be provided in a `yaml` or `json` file via `-params-file <file>`.
+
+> [!WARNING]
+> Do not use `-c <file>` to specify parameters as this will result in errors. Custom config files specified with `-c` must only be used for [tuning process resource specifications](https://nf-co.re/docs/running/run-pipelines#configuring-pipelines), other infrastructural tweaks (such as output directories), or module arguments (args).
+
+The above pipeline run specified with a params file in yaml format:
+
+```bash
+nextflow run nf-core/newrnaseq -profile docker -params-file params.yaml
+```
+
+with:
+
+```yaml title="params.yaml"
+input: './samplesheet.csv'
+outdir: './results/'
+genome: 'GRCh37'
+<...>
+```
+
+You can also generate such `YAML`/`JSON` files via [nf-core/launch](https://nf-co.re/launch). -->
+
+<!-- #### Updating the pipeline
+
+When you run the above command, Nextflow automatically pulls the pipeline code from GitHub and stores it as a cached version. When running the pipeline after this, it will always use the cached version if available - even if the pipeline has been updated since. To make sure that you're running the latest version of the pipeline, make sure that you regularly update the cached version of the pipeline:
+
+```bash
+nextflow pull nf-core/newrnaseq
+``` -->
+
+<!-- #### Reproducibility
+
+It is a good idea to specify the pipeline version when running the pipeline on your data. This ensures that a specific version of the pipeline code and software are used when you run your pipeline. If you keep using the same tag, you'll be running the same version of the pipeline, even if there have been changes to the code since.
+
+First, go to the [nf-core/newrnaseq releases page](https://github.com/nf-core/newrnaseq/releases) and find the latest pipeline version - numeric only (eg. `1.3.1`). Then specify this when running the pipeline with `-r` (one hyphen) - eg. `-r 1.3.1`. Of course, you can switch to another version by changing the number after the `-r` flag.
+
+This version number will be logged in reports when you run the pipeline, so that you'll know what you used when you look back in the future. For example, at the bottom of the MultiQC reports.
+
+To further assist in reproducibility, you can use share and reuse [parameter files](#running-the-pipeline) to repeat pipeline runs with the same settings without having to write out a command with every single parameter.
+
+> [!TIP]
+> If you wish to share such profile (such as upload as supplementary material for academic publications), make sure to NOT include cluster specific paths to files, nor institutional specific profiles. -->
+
+## Core Nextflow arguments
+
+> [!NOTE]
+> These options are part of Nextflow and use a _single_ hyphen (pipeline parameters use a double-hyphen)
+
+### `-profile`
+
+Use this parameter to choose a configuration profile. Profiles can give configuration presets for different compute environments.
+
+Several generic profiles are bundled with the pipeline which instruct the pipeline to use software packaged using different methods (Docker, Singularity, Podman, Shifter, Charliecloud, Apptainer, Conda) - see below.
+
+<!-- > [!IMPORTANT]
+> We highly recommend the use of Docker or Singularity containers for full pipeline reproducibility, however when this is not possible, Conda is also supported. -->
+
+The pipeline also dynamically loads configurations from [https://github.com/nf-core/configs](https://github.com/nf-core/configs) when it runs, making multiple config profiles for various institutional clusters available at run time. For more information and to check if your system is supported, please see the [nf-core/configs documentation](https://github.com/nf-core/configs#documentation).
+
+Note that multiple profiles can be loaded, for example: `-profile test,docker` - the order of arguments is important!
+They are loaded in sequence, so later profiles can overwrite earlier profiles.
+
+If `-profile` is not specified, the pipeline will run locally and expect all software to be installed and available on the `PATH`. This is _not_ recommended, since it can lead to different results on different machines dependent on the computer environment.
+
+- `test`
+  - A profile with a complete configuration for automated testing
+  - Includes links to test data so needs no other parameters
+- `docker`
+  - A generic configuration profile to be used with [Docker](https://docker.com/)
+- `singularity`
+  - A generic configuration profile to be used with [Singularity](https://sylabs.io/docs/)
+- `podman`
+  - A generic configuration profile to be used with [Podman](https://podman.io/)
+- `shifter`
+  - A generic configuration profile to be used with [Shifter](https://nersc.gitlab.io/development/shifter/how-to-use/)
+- `charliecloud`
+  - A generic configuration profile to be used with [Charliecloud](https://charliecloud.io/)
+- `apptainer`
+  - A generic configuration profile to be used with [Apptainer](https://apptainer.org/)
+- `wave`
+  - A generic configuration profile to enable [Wave](https://seqera.io/wave/) containers. Use together with one of the above (requires Nextflow `24.03.0-edge` or later).
+- `conda`
+  - A generic configuration profile to be used with [Conda](https://conda.io/docs/). Please only use Conda as a last resort i.e. when it's not possible to run the pipeline with Docker, Singularity, Podman, Shifter, Charliecloud, or Apptainer.
+
+### `-resume`
+
+Specify this when restarting a pipeline. Nextflow will use cached results from any pipeline steps where the inputs are the same, continuing from where it got to previously. For input to be considered the same, not only the names must be identical but the files' contents as well. For more info about this parameter, see [this blog post](https://www.nextflow.io/blog/2019/demystifying-nextflow-resume.html).
+
+You can also supply a run name to resume a specific run: `-resume [run-name]`. Use the `nextflow log` command to show previous run names.
+
+
+### Running in the background
+
+Nextflow handles job submissions and supervises the running jobs. The Nextflow process must run until the pipeline is finished.
+
+The Nextflow `-bg` flag launches Nextflow in the background, detached from your terminal so that the workflow does not stop if you log out of your session. The logs are saved to a file.
+
+Alternatively, you can use `screen` / `tmux` or similar tool to create a detached session which you can log back into at a later time.
+Some HPC setups also allow you to run nextflow within a cluster job submitted your job scheduler (from where it submits more jobs).
+
