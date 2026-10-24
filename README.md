@@ -105,7 +105,7 @@ TREATMENT_REP3,AEG588A6_S6_L003_R1_001.fastq.gz,AEG588A6_S6_L004_R1_001.fastq.gz
 |`strandedness`| String indicating the strandedness of the reads. Has to be one of: `forward`, `reverse`, `auto`. Choose `auto` if strandedness should be determined automatically by Salmon (more specifically the SALMON_QUANT step). |
 
 <!-- TODO link sometimes works and sometimes doesnt immediately afterwards -->
-An [example samplesheet](./assets/samplesheet.csv) has been provided with the pipeline.
+An [example samplesheet](Semester_2/biomedical_data/computational_workflows_project_flamm_henkel/assets/samplesheet.csv) has been provided with the pipeline.
 
 ### Running the pipeline
 

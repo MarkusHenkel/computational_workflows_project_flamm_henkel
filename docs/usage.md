@@ -65,7 +65,6 @@ TREATMENT_REP3,AEG588A6_S6_L003_R1_001.fastq.gz,AEG588A6_S6_L004_R1_001.fastq.gz
 | `fastq_2` | Full path to FastQ file for Illumina short reads 2. Gzipping is optional, however if file `fastq_1` is zipped then `fastq_2` has to be gzipped as well. File extension has to be either ".fastq.gz"/".fq.gz" or ".fastq"/".fq" if the file is zipped or not zipped respectively.                                                             |
 |`strandedness`| String indicating the strandedness of the reads. Has to be one of: `forward`, `reverse`, `auto`. Choose `auto` if strandedness should be determined automatically by Salmon (more specifically the SALMON_QUANT step). |
 
-<!-- TODO link sometimes works and sometimes doesnt immediately afterwards -->
 An [example samplesheet](../assets/samplesheet.csv) has been provided in the pipeline's `assets/` directory.
 
 ### Running the pipeline
