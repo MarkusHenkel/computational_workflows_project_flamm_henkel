@@ -1,5 +1,10 @@
 # nf-core/newrnaseq
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23628584.svg)](https://doi.org/10.5281/zenodo.23628584)
+[![run with conda](https://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
+[![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
+[![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
+
 ## Introduction
 
 **nf-core/newrnaseq** is a bioinformatics pipeline that can be used to analyse bulk RNA single- and paired-end sequencing data (no UMIs) obtained from organisms with a reference genome and annotation. It takes a samplesheet with FASTQ files as input, performs quality control (QC), trimming and alignment, and produces a gene expression matrix and extensive QC report.
@@ -545,18 +550,18 @@ If you would like to contribute to this pipeline, please see the [contributing g
 ## Citations
 
 <!-- TODO nf-core: Add citation for pipeline after first release. Uncomment lines below and update Zenodo doi and badge at the top of this file. -->
-<!-- If you use nf-core/newrnaseq for your analysis, please cite it using the following doi: [10.5281/zenodo.XXXXXX](https://doi.org/10.5281/zenodo.XXXXXX) -->
+If you use nf-core/newrnaseq for your analysis, please cite it using the following doi: [10.5281/zenodo.23628584](https://doi.org/10.5281/zenodo.23628584)
 
 
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
 
-<!-- You can cite the `nf-core` publication as follows:
+You can cite the `nf-core` publication as follows:
 
 > **The nf-core framework for community-curated bioinformatics pipelines.**
 >
 > Philip Ewels, Alexander Peltzer, Sven Fillinger, Harshil Patel, Johannes Alneberg, Andreas Wilm, Maxime Ulysse Garcia, Paolo Di Tommaso & Sven Nahnsen.
 >
-> _Nat Biotechnol._ 2020 Feb 13. doi: [10.1038/s41587-020-0439-x](https://dx.doi.org/10.1038/s41587-020-0439-x). --> 
+> _Nat Biotechnol._ 2020 Feb 13. doi: [10.1038/s41587-020-0439-x](https://dx.doi.org/10.1038/s41587-020-0439-x). 
 
 
 1. Andrews S. (2010). FastQC: a quality control tool for high throughput sequence data. https://www.bioinformatics.babraham.ac.uk/projects/fastqc/
@@ -565,8 +570,7 @@ An extensive list of references for the tools used by the pipeline can be found 
 4. Petr Danecek, James K Bonfield, Jennifer Liddle, John Marshall, Valeriu Ohan, Martin O Pollard, Andrew Whitwham, Thomas Keane, Shane A McCarthy, Robert M Davies, Heng Li, Twelve years of SAMtools and BCFtools, GigaScience, Volume 10, Issue 2, February 2021, giab008, https://doi.org/10.1093/gigascience/giab008 
 5. Alexander Dobin, Carrie A. Davis, Felix Schlesinger, Jorg Drenkow, Chris Zaleski, Sonali Jha, Philippe Batut, Mark Chaisson, Thomas R. Gingeras, STAR: ultrafast universal RNA-seq aligner, Bioinformatics, Volume 29, Issue 1, January 2013, Pages 15–21, https://doi.org/10.1093/bioinformatics/bts635 
 6. Philip Ewels, Måns Magnusson, Sverker Lundin, Max Käller, MultiQC: summarize analysis results for multiple tools and samples in a single report, Bioinformatics, Volume 32, Issue 19, October 2016, Pages 3047–3048, https://doi.org/10.1093/bioinformatics/btw354 
-7. Philip Ewels, Alexander Peltzer, Sven Fillinger, Harshil Patel, Johannes Alneberg, Andreas Wilm, Maxime Ulysse Garcia, Paolo Di Tommaso & Sven Nahnsen. _Nat Biotechnol._ 2020 Feb 13. doi: [10.1038/s41587-020-0439-x](https://dx.doi.org/10.1038/s41587-020-0439-x).
-8. GNU gzip. https://www.gnu.org/software/gzip/
-9. Love MI, Soneson C, Hickey PF, Johnson LK, Pierce NT, et al. (2020) Tximeta: Reference sequence checksums for provenance identification in RNA-seq. PLOS Computational Biology 16(2): e1007664. https://doi.org/10.1371/journal.pcbi.1007664
-10. Patro, R., Duggal, G., Love, M. et al. Salmon provides fast and bias-aware quantification of transcript expression. Nat Methods 14, 417–419 (2017). https://doi.org/10.1038/nmeth.4197
-11. Geo Pertea and Mihaela Pertea. “GFF utilities: GffRead and GffCompare”. In: F1000Research 9 (2020), ISCB–Comm.
+7. GNU gzip. https://www.gnu.org/software/gzip/
+8. Love MI, Soneson C, Hickey PF, Johnson LK, Pierce NT, et al. (2020) Tximeta: Reference sequence checksums for provenance identification in RNA-seq. PLOS Computational Biology 16(2): e1007664. https://doi.org/10.1371/journal.pcbi.1007664
+9. Patro, R., Duggal, G., Love, M. et al. Salmon provides fast and bias-aware quantification of transcript expression. Nat Methods 14, 417–419 (2017). https://doi.org/10.1038/nmeth.4197
+10. Geo Pertea and Mihaela Pertea. “GFF utilities: GffRead and GffCompare”. In: F1000Research 9 (2020), ISCB–Comm.
