@@ -36,4 +36,4 @@ Pipeline Configuration:
 
 --
 nf-core/newrnaseq
-https://github.com/nf-core/newrnaseq
+https://github.com/MarkusHenkel/computational_workflows_project_flamm_henkel
