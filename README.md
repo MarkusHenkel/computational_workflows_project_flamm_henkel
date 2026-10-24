@@ -1,19 +1,12 @@
 # nf-core/newrnaseq
 
 ## Introduction
-<!-- TODO nf-core:
-   Complete this sentence with a 2-3 sentence summary of what types of data the pipeline ingests, a brief overview of the
-   major pipeline sections and the types of output it produces. You're giving an overview to someone new
-   to nf-core here, in 15-20 seconds. For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#introduction
--->
 
 **nf-core/newrnaseq** is a bioinformatics pipeline that can be used to analyse bulk RNA single- and paired-end sequencing data (no UMIs) obtained from organisms with a reference genome and annotation. It takes a samplesheet with FASTQ files as input, performs quality control (QC), trimming and alignment, and produces a gene expression matrix and extensive QC report.
 
 ## Pipeline Overview
 
-<!-- TODO nf-core: Include a figure that guides the user through the major workflow steps. Many nf-core
-     workflows use the "tube map" design for that. See https://nf-co.re/docs/community/brand/workflow-schematics#examples for examples.   -->
-<!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->
+![metromap](./assets/metromap/metro_map2.pdf)
 
 Per default, the pipeline computes the following steps:
 
@@ -34,8 +27,6 @@ Per default, the pipeline computes the following steps:
 <!-- > [!NOTE]
 > If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/get_started/environment_setup/overview) on how to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/get_started/run-your-first-pipeline) with `-profile test` before running the workflow on actual data. -->
 
-<!-- TODO nf-core: Describe the minimum required steps to execute the pipeline, e.g. how to prepare samplesheets.
-     Explain what rows and columns represent. For instance (please edit as appropriate): -->
 
 
 
@@ -43,7 +34,6 @@ Per default, the pipeline computes the following steps:
 
 ### Introduction
 
-<!-- TODO nf-core: Add documentation about anything specific to running your pipeline. For general topics, please point to (and add to) the main nf-core website. -->
 
 In order to run the pipeline, a samplesheet and a reference genome is required. 
 The pipeline supports the input of a reference genome both by name (via iGenomes) and by a combination of Fasta and GTF files. The respective 
@@ -104,7 +94,6 @@ TREATMENT_REP3,AEG588A6_S6_L003_R1_001.fastq.gz,AEG588A6_S6_L004_R1_001.fastq.gz
 | `fastq_2` | Full path to FastQ file for Illumina short reads 2. Gzipping is optional, however if file `fastq_1` is zipped then `fastq_2` has to be gzipped as well. File extension has to be either ".fastq.gz"/".fq.gz" or ".fastq"/".fq" if the file is zipped or not zipped respectively.                                                             |
 |`strandedness`| String indicating the strandedness of the reads. Has to be one of: `forward`, `reverse`, `auto`. Choose `auto` if strandedness should be determined automatically by Salmon (more specifically the SALMON_QUANT step). |
 
-<!-- TODO link sometimes works and sometimes doesnt immediately afterwards -->
 An [example samplesheet](Semester_2/biomedical_data/computational_workflows_project_flamm_henkel/assets/samplesheet.csv) has been provided with the pipeline.
 
 ### Running the pipeline
@@ -175,7 +164,6 @@ where `igenome_name` is one of the following:
   - rn6
   - susScr3
  
-<!-- TODO nf-core: update the following command to include all required parameters for a minimal example -->
 
 Or if instead of choosing an iGenome, specify a Fasta and GTF file of the reference genome:
 ```bash
@@ -353,7 +341,6 @@ nextflow run nf-core/newrnaseq \
    --genome <igenome_name>
 ```
 
-<!-- TODO nf-core: update the following command to include all required parameters for a minimal example -->
 <!-- 
 or if instead of choosing a previously listed iGenome, specify a Fasta and GTF file of the reference genome:
 ```bash
@@ -534,7 +521,6 @@ If trimming is skipped only the second [FastQC](http://www.bioinformatics.babrah
 
 [Picard](https://broadinstitute.github.io/picard/) is used to mark duplicate reads and to collect RNA-seq specific alignment metrics. The metrics files are parsed by MultiQC and shown in the report.
 
-<!-- TODO: list the Picard modules that are actually run (e.g. MarkDuplicates, CollectRnaSeqMetrics) -->
 
 
 
@@ -546,13 +532,12 @@ nf-core/newrnaseq was originally written by Benedikt Flamm and Markus Henkel.
 
 <!-- We thank the following people for their extensive assistance in the development of this pipeline: -->
 
-<!-- TODO nf-core: If applicable, make list of people who have also contributed -->
 
-<!-- ## Contributions and Support -->
+## Contributions and Support
 
-<!-- If you would like to contribute to this pipeline, please see the [contributing guidelines](docs/CONTRIBUTING.md).
+If you would like to contribute to this pipeline, please see the [contributing guidelines](docs/CONTRIBUTING.md).
 
-For further information or help, don't hesitate to get in touch on the [Slack `#newrnaseq` channel](https://nfcore.slack.com/channels/newrnaseq) (you can join with [this invite](https://nf-co.re/join/slack)). -->
+<!-- For further information or help, don't hesitate to get in touch on the [Slack `#newrnaseq` channel](https://nfcore.slack.com/channels/newrnaseq) (you can join with [this invite](https://nf-co.re/join/slack)). -->
 
 
 
@@ -562,17 +547,16 @@ For further information or help, don't hesitate to get in touch on the [Slack `#
 <!-- TODO nf-core: Add citation for pipeline after first release. Uncomment lines below and update Zenodo doi and badge at the top of this file. -->
 <!-- If you use nf-core/newrnaseq for your analysis, please cite it using the following doi: [10.5281/zenodo.XXXXXX](https://doi.org/10.5281/zenodo.XXXXXX) -->
 
-<!-- TODO nf-core: Add bibliography of tools and data used in your pipeline -->
 
-<!-- An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
+An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
 
-You can cite the `nf-core` publication as follows:
+<!-- You can cite the `nf-core` publication as follows:
 
 > **The nf-core framework for community-curated bioinformatics pipelines.**
 >
 > Philip Ewels, Alexander Peltzer, Sven Fillinger, Harshil Patel, Johannes Alneberg, Andreas Wilm, Maxime Ulysse Garcia, Paolo Di Tommaso & Sven Nahnsen.
 >
-> _Nat Biotechnol._ 2020 Feb 13. doi: [10.1038/s41587-020-0439-x](https://dx.doi.org/10.1038/s41587-020-0439-x). -->
+> _Nat Biotechnol._ 2020 Feb 13. doi: [10.1038/s41587-020-0439-x](https://dx.doi.org/10.1038/s41587-020-0439-x). --> 
 
 
 1. Andrews S. (2010). FastQC: a quality control tool for high throughput sequence data. https://www.bioinformatics.babraham.ac.uk/projects/fastqc/
@@ -585,3 +569,4 @@ You can cite the `nf-core` publication as follows:
 8. GNU gzip. https://www.gnu.org/software/gzip/
 9. Love MI, Soneson C, Hickey PF, Johnson LK, Pierce NT, et al. (2020) Tximeta: Reference sequence checksums for provenance identification in RNA-seq. PLOS Computational Biology 16(2): e1007664. https://doi.org/10.1371/journal.pcbi.1007664
 10. Patro, R., Duggal, G., Love, M. et al. Salmon provides fast and bias-aware quantification of transcript expression. Nat Methods 14, 417–419 (2017). https://doi.org/10.1038/nmeth.4197
+11. Geo Pertea and Mihaela Pertea. “GFF utilities: GffRead and GffCompare”. In: F1000Research 9 (2020), ISCB–Comm.
