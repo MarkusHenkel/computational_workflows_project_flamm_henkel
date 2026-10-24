@@ -1,6 +1,6 @@
 process PYTHON_PCA {
-    // TODO tag ?
-    // TODO label ?
+    tag "$meta.counts_type"
+    label "process_single" // pca does not use multithreading
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?

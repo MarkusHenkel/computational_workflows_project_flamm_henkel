@@ -1,6 +1,6 @@
 process GFFREAD_CUSTOM {
-    // TODO tag ?
-    // TODO label ?
+    tag "$meta.id"
+    label "process_single" // gffread does not use multithreading
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
