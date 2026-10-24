@@ -7,6 +7,8 @@ lint:
     - assets/email_template.html
     - assets/email_template.txt
     - docs/README.md
+  nextflow_config:
+    - manifest.homePage
 
 template:
   org: nf-core
