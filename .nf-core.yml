@@ -2,7 +2,11 @@ repository_type: pipeline
 
 nf_core_version: 4.1.0
 
-lint: {}
+lint: 
+  files_unchanged:
+    - assets/email_template.html
+    - assets/email_template.txt
+    - docs/README.md
 
 template:
   org: nf-core
