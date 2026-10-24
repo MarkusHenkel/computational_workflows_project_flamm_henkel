@@ -12,11 +12,38 @@
 
 - [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
 
-> Andrews, S. (2010). FastQC: A Quality Control Tool for High Throughput Sequence Data [Online].
+  > Andrews, S. (2010). FastQC: A Quality Control Tool for High Throughput Sequence Data [Online].
 
 - [MultiQC](https://pubmed.ncbi.nlm.nih.gov/27312411/)
 
-> Ewels P, Magnusson M, Lundin S, Käller M. MultiQC: summarize analysis results for multiple tools and samples in a single report. Bioinformatics. 2016 Oct 1;32(19):3047-8. doi: 10.1093/bioinformatics/btw354. Epub 2016 Jun 16. PubMed PMID: 27312411; PubMed Central PMCID: PMC5039924.
+  > Ewels P, Magnusson M, Lundin S, Käller M. MultiQC: summarize analysis results for multiple tools and samples in a single report. Bioinformatics. 2016 Oct 1;32(19):3047-8. doi: 10.1093/bioinformatics/btw354. Epub 2016 Jun 16. PubMed PMID: 27312411; PubMed Central PMCID: PMC5039924.
+
+  
+
+- [Picard](https://broadinstitute.github.io/picard/)
+  > Broad Institute. Picard Toolkit. GitHub repository. https://broadinstitute.github.io/picard/
+
+- [fastp](https://doi.org/10.1093/bioinformatics/bty560)
+  > Shifu Chen, Yanqing Zhou, Yaru Chen, Jia Gu, fastp: an ultra-fast all-in-one FASTQ preprocessor, Bioinformatics, Volume 34, Issue 17, September 2018, Pages i884–i890, https://doi.org/10.1093/bioinformatics/bty560 
+  
+- [SAMtools](https://doi.org/10.1093/gigascience/giab008)
+  > Petr Danecek, James K Bonfield, Jennifer Liddle, John Marshall, Valeriu Ohan, Martin O Pollard, Andrew Whitwham, Thomas Keane, Shane A McCarthy, Robert M Davies, Heng Li, Twelve years of SAMtools and BCFtools, GigaScience, Volume 10, Issue 2, February 2021, giab008, https://doi.org/10.1093/gigascience/giab008 
+  
+  
+
+- [STAR](https://doi.org/10.1093/bioinformatics/bts635)
+  > Alexander Dobin, Carrie A. Davis, Felix Schlesinger, Jorg Drenkow, Chris Zaleski, Sonali Jha, Philippe Batut, Mark Chaisson, Thomas R. Gingeras, STAR: ultrafast universal RNA-seq aligner, Bioinformatics, Volume 29, Issue 1, January 2013, Pages 15–21, https://doi.org/10.1093/bioinformatics/bts635 
+  
+- [GUNZIP](https://www.gnu.org/software/gzip/)
+  > GNU gzip. https://www.gnu.org/software/gzip/
+
+- [Tximeta](https://doi.org/10.1371/journal.pcbi.1007664)
+  > Love MI, Soneson C, Hickey PF, Johnson LK, Pierce NT, et al. (2020) Tximeta: Reference sequence checksums for provenance identification in RNA-seq. PLOS Computational Biology 16(2): e1007664. https://doi.org/10.1371/journal.pcbi.1007664
+
+- [Salmon](https://doi.org/10.1038/nmeth.4197)
+  > Patro, R., Duggal, G., Love, M. et al. Salmon provides fast and bias-aware quantification of transcript expression. Nat Methods 14, 417–419 (2017). https://doi.org/10.1038/nmeth.4197
+- [GffRead](https://doi.org/10.12688/f1000research.23297.2)
+  > Geo Pertea and Mihaela Pertea. “GFF utilities: GffRead and GffCompare”. In: F1000Research 9 (2020), ISCB–Comm.
 
 ## Software packaging/containerisation tools
 
