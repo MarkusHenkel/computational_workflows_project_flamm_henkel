@@ -549,7 +549,6 @@ If you would like to contribute to this pipeline, please see the [contributing g
 
 ## Citations
 
-<!-- TODO nf-core: Add citation for pipeline after first release. Uncomment lines below and update Zenodo doi and badge at the top of this file. -->
 If you use nf-core/newrnaseq for your analysis, please cite it using the following doi: [10.5281/zenodo.23628584](https://doi.org/10.5281/zenodo.23628584)
 
 
